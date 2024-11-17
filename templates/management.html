@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>HC Centro Medico - Creazione Slot</title>
+{% endblock %}
+
+{% block body %}
+
+  <header class="pb-3 mb-3 header-border">
+    <div>
+      <h3 class="float-md-start mb-0">HC Centro Medico</h3>
+      <nav class="nav nav-linksbar justify-content-center float-md-end">
+        <a class="nav-link fw-bold py-1 px-0 active" aria-current="page" href="/">Home</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="px-3 text-start">
+
+    <h6>Elenco Prossimi Appuntamenti:</h6>
+
+    <table class="table mb-5">
+      <thead>
+        <tr>
+          <th scope="col">Appuntamento</th>
+          <th scope="col">Cognome</th>
+          <th scope="col">Nome</th>
+          <th scope="col">Codice Fiscale</th>
+          <th scope="col">Codice</th>
+        </tr>
+      </thead>
+      <tbody>
+
+{% for schedule in schedules %}
+        <tr>
+          <td>
+            <a href="#" class="scheduleinfo" data-cf="{{ schedule.fiscal_code }}" data-scode="{{ schedule.scode }}">{{ schedule.schedule }}</a>
+          </td>
+          <td>{{ schedule.lastname }}</td>
+          <td>{{ schedule.firstname }}</td>
+          <td>{{ schedule.fiscal_code }}</td>
+          <td>{{ schedule.scode }}</td>
+        </tr>
+{% endfor %}
+      </tbody>
+    </table>
+
+<!-- Modale di informazioni appuntamento -->
+    <div class="modal" tabindex="-1" id="detailsdlg">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Dettagli Appuntamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            
+            <p>Di seguito i dettagli dell'appuntamento:</p>
+
+            <div class="mb-3 row">
+              <label for="lastdate" class="col-sm-4 col-form-label">Email</label>
+              <div class="col-sm-8">
+                <input type="text" readonly class="form-control-plaintext fw-semibold" value="" id="email">
+              </div>
+            </div>
+
+            <div class="mb-3 row">
+              <label for="lastdate" class="col-sm-4 col-form-label">Telefono</label>
+              <div class="col-sm-8">
+                <input type="text" readonly class="form-control-plaintext fw-semibold" value="" id="phone">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="lastdate" class="col-sm-4 col-form-label">Informazioni</label>
+              <textarea class="form-control-plaintext fw-semibold" readonly id="notes"></textarea>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+// Click sul bottone di invio dati
+$("a.scheduleinfo").click(function() {
+  var fiscal_code = $(this).attr("data-cf");
+  var scode = $(this).attr("data-scode");
+
+  // Esegue la chiamata ajax al backend per recuperare le informazioni dell'appuntamento.
+  $.ajax({
+    method: "GET",
+    url: "/searchSchedule/" + scode + "/" + fiscal_code
+  })
+  .fail(function( xhr, textStatus, errorThrown ) {
+    // Mostro errori in caso di errore di comunicazione/esecuzione
+    showAlert(errorThrown);
+  })
+  .done(function( payload ) {
+    // Mostra form e dati solo se non sono avvenuti errori
+    if (payload.status == 1) {
+      // Popola i campi con i dati ricevuti dal backend
+      $("#email").val(payload.data.email);
+      $("#phone").val(payload.data.phone);
+      $("#notes").val(payload.data.notes);
+
+      $("#detailsdlg").modal("show");
+    } else {
+      // Mostra eventuale errore generato (ad esempio codice errato)
+      showAlert(payload.status + ": " + payload.error);
+    }
+  });
+});
+
+// Evento di chiusura della modale di conferma
+$('#detailsdlg').on('hidden.bs.modal', function () {
+  // Ricarica la pagina così da eliminare i dati presenti e aggiornare le date disposibili.
+  $(':input','#detailsdlg').val('');
+});
+</script>
+
+
+    <hr>
+
+    <h6>Generazione nuovi slot appuntamento</h6>
+    <p>
+      Specificare il numero di giorni per cui generare gli slot di prenotazione.
+    </p>
+
+    <form id="insertslotform">
+      <div class="mb-3 row">
+        <label for="lastdate" class="col-sm-4 col-form-label">Ultima Data Inserita</label>
+        <div class="col-sm-8">
+          <input type="text" readonly class="form-control-plaintext fw-semibold" value="{{ last_date }}" id="lastdate">
+        </div>
+      </div>
+      <div class="mb-3">
+        <label for="days" class="form-label">Giorni da inserire</label>
+        <div class="input-group mb-3">
+          <input type="number" class="form-control" id="days" aria-label="Giorni Slot" required value="7">
+          <button class="btn btn-primary" type="button" id="btninsert">Inserisci</button>
+        </div>
+      </div>
+    </form>
+
+<!-- Modale di conferma inserimento -->
+    <div class="modal" tabindex="-1" id="confirmdlg">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Slot Inseriti</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Gli slot degli appuntamenti sono stati inseriti correttamente!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+// Click sul bottone di invio dati
+$("#btninsert").click(function() {
+  // Verifica validità dei campi tramite controllo nativo del browser
+  var form = document.querySelector('#insertslotform');
+  if (!form.reportValidity()) {
+    // In caso di errori (campi vuoti), blocca l'esecuzione
+    return;
+  }
+
+  // Esegue la chiamata ajax al backend per l'inserimento dell'appuntamento.
+  $.ajax({
+    method: "POST",        // Metodo utilizzato (POST)
+    url: "/management",    // Endpoint URL del backend
+    data: { 
+      days: $("#days").val(),
+    }
+  })
+  .fail(function(xhr, textStatus, errorThrown) {
+      // Mostra errori in caso di errore di comunicazione/esecuzione
+      showAlert(errorThrown);
+  })
+  .done(function(payload) {
+    // Mostra conferma e codice prenotazione solo se non sono avvenuti errori
+    if (payload.status == 1) {
+      // Mostra la modale di conferma
+      $("#confirmdlg").modal("show");
+    } else {
+      // Mostra eventuale errore generato (ad esempio codice errato)
+      showAlert(payload.status + ": " + payload.error);
+    }
+  });
+});
+
+// Evento di chiusura della modale di conferma
+$('#confirmdlg').on('hidden.bs.modal', function () {
+  // Ricarica la pagina così da aggiornare l'ultima data inserita.
+  location.reload();
+});
+</script>
+
+  </main>
+
+{% endblock %}

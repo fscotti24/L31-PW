@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="it">
+   <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+     <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+     <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.7.1.min.js') }}"></script>
+
+     {% block head %}{% endblock %}
+   </head>
+   <body class="d-flex text-center">
+     <div class="app-container d-flex w-100 min-vh-100 p-3 mx-auto flex-column shadow">
+     
+     {% block body %}{% endblock %}
+
+     </div>
+     
+<script type="text/javascript">
+// Mostra notifiche di errore
+function showAlert(sText) {
+  // Genera un ID univoco
+  let newID = 'id'+Date.now();
+
+  // Clona l'elemento HTML del toast, assegnandogli il nuovo ID e posizionandolo subito dopo il blocco copiato
+  const toastAlert = $("#alertMsg").clone().attr('id', newID).insertAfter("#alertMsg");
+
+  // Aggiunge il testo da mostrare
+  $("#"+newID+" .toast-body").html(sText);
+
+  // Mostra il toast tramite funzione di Bootstrap
+  let toast = new bootstrap.Toast(toastAlert, {}).show();
+}
+</script>
+
+    <div class="toast-container p-3 bottom-0 end-0">
+      <div id="alertMsg" class="toast text-bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">Attenzione!</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
+      </div>
+    </div>
+   </body>
+</html>

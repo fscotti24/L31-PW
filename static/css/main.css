@@ -1,0 +1,43 @@
+/* Definisce lo stile e l'immagine di sfondo  */
+body {
+  background-image: url('/static/images/background.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* Larghezza massima del contenuto del sito e colore di sfondo  */
+.app-container {
+  max-width: 45em;
+  /* rgba per poter specificare una leggera trasparenza (80% o 0.8) */
+  background-color: rgba(240, 240, 240, .8);
+}
+
+/* Bordo di divisione tra header e contenuto */
+.header-border {
+  border-bottom: 1px solid #489ee6;
+}
+
+/* Stile dei link nella barra di navigazione */
+.nav-linksbar .nav-link {
+  color: rgba(7, 88, 155, .5);
+  /* Aggiunge un bordo trasparente per mantenere l'allineamento e lo spazio */
+  border-top: .25rem solid transparent;
+}
+
+/* Se il link ha il focus o passa sopra il mouse, imposta il colore del bordo */
+.nav-linksbar .nav-link:hover,
+.nav-linksbar .nav-link:focus {
+  border-top-color: rgba(0, 0, 0, .25);
+}
+
+/* Aggiunge un margine tra i link, tranne al primo elemento di nav-linksbar  */
+.nav-linksbar .nav-link + .nav-link {
+  margin-left: 1rem;
+}
+
+/* Identifica il link attuale impostando un colore differente (più acceso) sia al testo che al bordo in alto */
+.nav-linksbar .active {
+  color: #2181d1;
+  border-top-color: #489ee6;
+}

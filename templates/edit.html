@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>HC Centro Medico - Modifica Prenotazione</title>
+{% endblock %}
+
+{% block body %}
+
+
+  <header class="pb-3 mb-3 header-border">
+    <div>
+      <h3 class="float-md-start mb-0">HC Centro Medico</h3>
+      <nav class="nav nav-linksbar justify-content-center float-md-end">
+        <a class="nav-link fw-bold py-1 px-0" aria-current="page" href="/">Home</a>
+        <a class="nav-link fw-bold py-1 px-0 active" href="/editSchedule">Modifica Prenotazione</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="px-3 text-start">
+
+    <div id="searchformwrapper">
+      <p>Specificare il codice della prenotazione e il codice fiscale associato ad esso:</p>
+      <form id="searchform">
+        <div class="mb-3">
+          <label for="fiscalcode" class="form-label">Codice Fiscale</label>
+          <input type="text" class="form-control" id="fiscalcode" aria-label="Codice Fiscale" maxlength="16" placeholder="ABCDEF12A12A123A" required value="">
+        </div>
+
+        <label for="scode" class="form-label">Codice di Prenotazione</label>
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" id="scode" placeholder="ABCDE12345" aria-label="Codice di Prenotazione" required value="">
+          <button class="btn btn-primary" type="button" id="btnsearch">Cerca</button>
+        </div>
+      </form>
+    </div>
+
+    <script>
+      $("#btnsearch").click(function() {
+        // Verifica validità dei campi tramite controllo nativo del browser
+        var form = document.querySelector('#searchform');
+        if (!form.reportValidity()) {
+          // In caso di errori (campi vuoti), blocca l'esecuzione
+          return;
+        }
+
+        // Recupera informazioni prenotazione dal backend
+        $.ajax({
+          method: "GET",
+          url: "/searchSchedule/" + $("#scode").val() + "/" + $("#fiscalcode").val(),
+        })
+        .fail(function( xhr, textStatus, errorThrown ) {
+          // Mostra errori in caso di errore di comunicazione/esecuzione
+          showAlert(errorThrown);
+        })
+        .done(function( payload ) {
+          // Mostra form e dati solo se non sono avvenuti errori
+          if (payload.status == 1) {
+            // Popola i campi con i dati ricevuti dal backend
+            $("#schedule").val(payload.data.schedule);
+            $("#firstname").val(payload.data.firstname);
+            $("#lastname").val(payload.data.lastname);
+            $("#email").val(payload.data.email);
+            $("#phone").val(payload.data.phone);
+            $("#notes").val(payload.data.notes);
+
+            // Mostra form con i dati e nasconde quella di ricerca
+            $("#searchformwrapper").hide();
+            $("#editformwrapper").removeClass("d-none");
+          } else {
+            // Mostra eventuale errore generato (ad esempio codice errato)
+            showAlert(payload.status + ": " + payload.error);
+          }
+        });
+      });
+    </script>
+
+    <div id="editformwrapper" class="d-none">
+      <p>Di seguito è possibile modificare i dati della prenotazione:</p>
+      <form id="editform">
+        <div class="mb-3 row">
+          <label for="schedule" class="col-sm-4 col-form-label">Data Appuntamento</label>
+          <div class="col-sm-8">
+            <input type="text" readonly class="form-control-plaintext fw-semibold" id="schedule">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="firstname" class="form-label">Nome</label>
+          <input type="text" class="form-control" id="firstname" aria-label="Nome" required>
+        </div>
+        <div class="mb-3">
+          <label for="lastname" class="form-label">Cognome</label>
+          <input type="text" class="form-control" id="lastname" aria-label="Cognome" required>
+        </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" aria-label="emailHelp" required>
+          <div id="emailHelp" class="form-text">Verrà recapito il codice prenotazione e la prima disponibilità.</div>
+        </div>
+        <div class="mb-3">
+          <label for="phone" class="form-label">Telefono</label>
+          <input type="text" class="form-control" id="phone" aria-describedby="phoneHelp" required>
+          <div id="phoneHelp" class="form-text">Sarà usato in caso di problemi e per le notifiche della prenotazione.</div>
+        </div>
+        <div class="mb-3">
+          <label for="notes" class="form-label">Informazioni</label>
+          <textarea class="form-control" id="notes" rows="3" aria-describedby="notesHelp" required></textarea>
+          <div id="notesHelp" class="form-text">Riportare la richiesta di visita e se presente anche il numero della ricetta.</div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteconfirmdlg">Annulla Richiesta</button>
+          </div>
+          <div class="col-6 text-end">
+            <button type="button" id="updatebtn" class="btn btn-primary">Aggiorna Richiesta</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal" tabindex="-1" id="deleteconfirmdlg">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Conferma Annullamento</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>Confermare annullamento dell'appuntamento?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi</button>
+            <button type="button" id="deletebtn" class="btn btn-primary">Conferma</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" tabindex="-1" id="deleteconfirmeddlg">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Annullamento Confermato</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>La richiesta è stata correttamente annullata!</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+  $("#deletebtn").click(function() {
+    $.ajax({
+      method: "GET",
+      url: "/deleteSchedule/" + $("#scode").val() + "/" + $("#fiscalcode").val(),
+    })
+    .fail(function( xhr, textStatus, errorThrown ) {
+        // Mostro errori in caso di errore di comunicazione/esecuzione
+        showAlert(errorThrown);
+    })
+    .done(function( payload ) {
+        // Mostra form e dati solo se non sono avvenuti errori
+        if (payload.status == 1) {
+          // Nascondo la form con i dati
+          $("#editformwrapper").hide();
+
+          // Ripulisco tutti i campi dai dati presenti per questioni di sicurezza
+          $("#editformwrapper input[type='text']").val("");
+          $("#notes").val("");  // Textarea
+
+          // Ripulisco anche la form di ricerca prescrizione
+          $("#searchformwrapper input[type='text']").val("");
+
+          // Mostro la form di ricerca prescrizione
+          $("#searchformwrapper").show();
+
+          // Nascondo la modale di richiesta conferma
+          $("#deleteconfirmdlg").modal("hide");
+
+          // Mostro la modale con il messaggio di conferma eliminazione
+          $("#deleteconfirmeddlg").modal("show");
+        } else {
+          // Mostro l'errore ritornato dal backend
+          showAlert(payload.status + ": " + payload.error);
+        }
+    });
+  });
+</script>
+
+    <div class="modal" tabindex="-1" id="updateconfirmeddlg">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Aggiornamento Dati</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p>I dati sono stati aggiornati correttamente.</p>
+            <p>Se dovessero esserci problemi, sarete ricontattati dal centro.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<script>
+$("#updatebtn").click(function() {
+  // Verifica validità dei campi tramite controllo nativo del browser
+  var form = document.querySelector('#editform');
+  if (!form.reportValidity()) {
+    // In caso di errori (campi vuoti), blocca l'esecuzione
+    return;
+  }
+
+  $.ajax({
+    method: "POST",
+    url: "/editSchedule",
+    data: {
+      scode: $("#scode").val(),
+      fiscalcode: $("#fiscalcode").val(),
+      firstname: $("#firstname").val(),
+      lastname: $("#lastname").val(),
+      email: $("#email").val(),
+      phone: $("#phone").val(),
+      notes: $("#notes").val()
+    }
+  })
+  .fail(function( xhr, textStatus, errorThrown ) {
+      // Mostro errori in caso di errore di comunicazione/esecuzione
+      showAlert(errorThrown);
+  })
+  .done(function( payload ) {
+      // Mostra form e dati solo se non sono avvenuti errori
+      if (payload.status == 1) {
+        // Nasconde la form con i dati aggiungendo la classe d-none
+        $("#editformwrapper").addClass("d-none");
+
+        // Ripulisce tutti i campi dai dati presenti per questioni di sicurezza
+        $("#editformwrapper input[type='text']").val("");
+        $("#notes").val("");  // Textarea
+
+        // Ripulisce anche la form di ricerca prescrizione
+        $("#searchformwrapper input[type='text']").val("");
+
+        // Mostra la form di ricerca prescrizione
+        $("#searchformwrapper").show();
+
+        // Mostra la modale con il messaggio di conferma aggiornamento
+        $("#updateconfirmeddlg").modal("show");
+      } else {
+        // Mostra l'errore ritornato dal backend
+        showAlert(payload.status + ": " + payload.error);
+      }
+  });
+});
+</script>
+
+  </main>
+
+{% endblock %}
