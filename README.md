@@ -42,3 +42,8 @@ Per ricreare il database procedere nel seguente modo:
 È stato predisposto un ambiente già pronto all'uso all'indirizzo: https://l31-pw.onrender.com/
 
 NB: La pagina potrebbe impiegare fino a 1 minuto, prima di aprirsi per la prima volta. Questo è dovuto ai limiti della piattaforma utilizzata per ospitare l'applicazione (Render).
+
+
+## Nota sui dati di prova
+
+Eventuali dati di prova presenti nel database sono <ins>totalmente fittizzi</ins>.
